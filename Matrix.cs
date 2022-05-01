@@ -7,24 +7,38 @@ using System.Diagnostics;
 
 namespace _3D_Engine
 {
+    /// <summary>
+    /// Represents a Matrix.
+    /// </summary>
     public class Matrix
     {
 
-        private float[,] data;
+        private double[,] data;
         public readonly int[] shape;
 
+        /// <summary>Initializes a new instance of the <see cref="Matrix" /> class.</summary>
+        /// <param name="shape">The shape of the Matrix in the form (row, column).</param>
+        /// <exception cref="System.ArgumentException">The dimensions of the array must be integers above 0</exception>
         public Matrix(int[] shape)
         {
             if (shape == null || shape[0] <= 0 || shape[1] <= 0)
             {
                 throw new ArgumentException("The dimensions of the array must be integers above 0");
             }
-            this.data = new float[shape[0], shape[1]];
+            this.data = new double[shape[0], shape[1]];
             this.shape = shape;
 
         }
 
-        public Matrix(int[] shape, float[] data)
+
+        /// <summary>Initializes a new instance of the <see cref="Matrix" /> class.</summary>
+        /// <param name="shape">The shape of the Matrix in the form (row, column).</param>
+        /// <param name="data">The data that the Matrix will hold.</param>
+        /// <exception cref="System.ArgumentException">The dimensions of the array must be integers above 0
+        /// or</exception>
+        /// <exception cref="System.ArgumentException">The data provided cannot be casted into the shape provided.</exception>
+        /// <exception cref="System.ArgumentNullException">Data cannot be null.</exception>
+        public Matrix(int[] shape, double[] data)
         {
             if (shape == null || shape[0] <= 0 || shape[1] <= 0)
             {
@@ -39,20 +53,23 @@ namespace _3D_Engine
                 throw new ArgumentException(String.Format("Data cannot be casted to shape ({0}, {1})", shape[0], shape[1]));
             }
             this.shape = shape;
-            this.data = new float[shape[0], shape[1]];
+            this.data = new double[shape[0], shape[1]];
 
             for (int i = 0; i < data.Length; i++)
             {
                 int row = i / shape[1];
                 int column = i % shape[1];
                 this.data[row, column] = data[i];
-                Debug.WriteLine(String.Format("({0}, {1})", row, column));
             }
-            Debug.WriteLine(data.Length);
-
-
         }
 
+        /// <summary>
+        /// Multiplies by the specified matrix.
+        /// </summary>
+        /// <param name="matrix">The matrix.</param>
+        /// <returns></returns>
+        /// <exception cref="System.ArgumentNullException">Matrix cannot be multiplied by null object.</exception>
+        /// <exception cref="System.ArgumentException">These matrices cannot be multiplied as the column count of the first matrix is not equal to the row count on the second matrix.</exception>
         public Matrix Multiply(Matrix matrix)
         {
             if (matrix == null)
@@ -77,7 +94,12 @@ namespace _3D_Engine
             return resultMatrix;
         }
 
-        public Matrix Multiply(float scalar)
+        /// <summary>
+        /// Multiplies by the specified scalar value.
+        /// </summary>
+        /// <param name="scalar">The scalar.</param>
+        /// <returns></returns>
+        public Matrix Multiply(double scalar)
         {
 
             Matrix resultMatrix = new Matrix(shape);
@@ -93,6 +115,13 @@ namespace _3D_Engine
             return resultMatrix;
         }
 
+        /// <summary>
+        /// Adds the specified matrix to the current matrix.
+        /// </summary>
+        /// <param name="matrix">The matrix.</param>
+        /// <returns></returns>
+        /// <exception cref="System.ArgumentNullException">Matrix cannot be added to a null object.</exception>
+        /// <exception cref="System.ArgumentException">These matrices cannot be added as they do not have the same shape.</exception>
         public Matrix Add(Matrix matrix)
         {
             if (matrix == null)
@@ -116,6 +145,13 @@ namespace _3D_Engine
             return resultMatrix;
         }
 
+        /// <summary>
+        /// Subtracts the specified matrix from the current matrix.
+        /// </summary>
+        /// <param name="matrix">The matrix.</param>
+        /// <returns></returns>
+        /// <exception cref="System.ArgumentNullException">Matrix cannot be subtracted by null object.</exception>
+        /// <exception cref="System.ArgumentException">These matrices cannot be subtracted as they do not have the same shape.</exception>
         public Matrix Subtract(Matrix matrix)
         {
             if (matrix == null)
@@ -139,6 +175,10 @@ namespace _3D_Engine
             return resultMatrix;
         }
 
+        /// <summary>
+        /// Transposes this instance.
+        /// </summary>
+        /// <returns></returns>
         public Matrix Transpose()
         {
             int[] newShape = { shape[1], shape[0] };
@@ -153,9 +193,14 @@ namespace _3D_Engine
             return resultMatrix;
         }
 
+        /// <summary>
+        /// Finds the inverse matrix of this instance using Minors, Cofactors and Adjugates.
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="System.ArithmeticException">This matrix cannot be inversed</exception>
         public Matrix Inverse()
         {
-            float determinant = Determinant();
+            double determinant = Determinant();
             if (determinant == 0 || shape[0] != shape[1])
             {
                 throw new ArithmeticException("This matrix cannot be inversed");
@@ -189,11 +234,21 @@ namespace _3D_Engine
             return adjugate.Multiply(1f / determinant);
         }
 
-        public float Determinant() => Determinant(this);
+        /// <summary>
+        /// Finds the Determinant of this instance.
+        /// </summary>
+        /// <returns></returns>
+        public double Determinant() => Determinant(this);
 
-        private static float DotProduct(float[] row, float[] column)
+        /// <summary>
+        /// Calculates the DotProduct of a row and a column.
+        /// </summary>
+        /// <param name="row">The row.</param>
+        /// <param name="column">The column.</param>
+        /// <returns></returns>
+        private static double DotProduct(double[] row, double[] column)
         {
-            float product = 0;
+            double product = 0;
             for (int i = 0; i < row.Length; i++)
             {
                 product += row[i] * column[i];
@@ -201,10 +256,15 @@ namespace _3D_Engine
             return product;
         }
 
-        private static float Determinant(Matrix matrix)
+        /// <summary>
+        /// Finds the determinant of the specified matrix.
+        /// </summary>
+        /// <param name="matrix">The matrix to find the determinant of.</param>
+        /// <returns></returns>
+        private static double Determinant(Matrix matrix)
         {
             int sign = -1;
-            float determinant = 0f;
+            double determinant = 0f;
 
             if (matrix.shape[0] == 1 && matrix.shape[1] == 1)
             {
@@ -236,20 +296,46 @@ namespace _3D_Engine
             return determinant;
         }
 
-        public float this[int row, int column]
+        /// <summary>
+        /// Gets or sets the <see cref="System.Single"/> with the specified row.
+        /// </summary>
+        /// <value>
+        /// The <see cref="System.Single"/>.
+        /// </value>
+        /// <param name="row">The row.</param>
+        /// <param name="column">The column.</param>
+        /// <returns></returns>
+        public double this[int row, int column]
         {
             get => data[row, column];
             set => data[row, column] = value;
         }
 
-        private float[] GetRow(int row) => Enumerable.Range(0, shape[1])
+        /// <summary>
+        /// Gets the specified row.
+        /// </summary>
+        /// <param name="row">The row.</param>
+        /// <returns></returns>
+        /// 
+        private double[] GetRow(int row) => Enumerable.Range(0, shape[1])
                 .Select(i => data[row, i])
                 .ToArray();
 
-        private float[] GetColumn(int column) => Enumerable.Range(0, shape[0])
+        /// <summary>
+        /// Gets the specified column.
+        /// </summary>
+        /// <param name="column">The column.</param>
+        /// <returns></returns>
+        private double[] GetColumn(int column) => Enumerable.Range(0, shape[0])
                 .Select(i => data[i, column])
                 .ToArray();
 
+        /// <summary>
+        /// Converts the matrix into a formatted string.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
         public override string ToString()
         {
             string formattedMatrix = "[";
@@ -291,17 +377,55 @@ namespace _3D_Engine
             return formattedMatrix;
         }
 
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Matrix"/> to <see cref="System.String"/>.
+        /// </summary>
+        /// <param name="a">a.</param>
+        /// <returns>
+        /// The result of the conversion.
+        /// </returns>
         public static implicit operator string(Matrix a) => a.ToString();
 
+        /// <summary>
+        /// Implements the operator +.
+        /// </summary>
+        /// <param name="a">a.</param>
+        /// <param name="b">The b.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static Matrix operator +(Matrix a, Matrix b) => a.Add(b);
 
+
+        /// <summary>
+        /// Implements the operator -.
+        /// </summary>
+        /// <param name="a">a.</param>
+        /// <param name="b">The b.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static Matrix operator -(Matrix a, Matrix b) => a.Subtract(b);
-        
+
+        /// <summary>
+        /// Implements the operator * between two matrices. The resultant matrix will have the same amount of rows as the first matrix and the same amount of columns as the second.
+        /// </summary>
+        /// <param name="a">a.</param>
+        /// <param name="b">The b.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static Matrix operator *(Matrix a, Matrix b) => a.Multiply(b);
 
-        public static Matrix operator *(float a, Matrix b) => b.Multiply(a);
-
-        public static Matrix operator *(Matrix a, float b) => a.Multiply(b);
+        /// <summary>
+        /// Implements the operator * between a scalar and a matrix.
+        /// </summary>
+        /// <param name="a">a.</param>
+        /// <param name="b">The b.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
+        public static Matrix operator *(double a, Matrix b) => b.Multiply(a);
 
     }
 }
