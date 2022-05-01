@@ -21,7 +21,7 @@ namespace _3D_Engine
             }
             this.data = new float[shape[0], shape[1]];
             this.shape = shape;
-            
+
         }
 
         public Matrix(int[] shape, float[] data)
@@ -30,7 +30,7 @@ namespace _3D_Engine
             {
                 throw new ArgumentException("The dimensions of the array must be integers above 0");
             }
-            if(data == null)
+            if (data == null)
             {
                 throw new ArgumentNullException("Data cannot be null.");
             }
@@ -64,20 +64,36 @@ namespace _3D_Engine
                 throw new ArgumentException("These matrices cannot be multiplied as the column count of the first matrix is not equal to the row count on the second matrix.");
             }
 
-            int[] ResultShape = {this.shape[0], matrix.shape[1]};
-            Matrix ResultMatrix = new Matrix(ResultShape);
-            Debug.WriteLine("{0}, {1}", ResultMatrix.shape[0], ResultMatrix.shape[1]);
+            int[] ResultShape = { this.shape[0], matrix.shape[1] };
+            Matrix resultMatrix = new Matrix(ResultShape);
+
             for (int row = 0; row < this.shape[0]; row++)
             {
                 for (int col = 0; col < matrix.shape[1]; col++)
                 {
-                    ResultMatrix[row, col] = DotProduct(GetRow(row), matrix.GetColumn(col));
+                    resultMatrix[row, col] = DotProduct(GetRow(row), matrix.GetColumn(col));
                 }
             }
-            return ResultMatrix;
+            return resultMatrix;
         }
 
-        public Matrix Add(Matrix matrix) 
+        public Matrix Multiply(float scalar)
+        {
+
+            Matrix resultMatrix = new Matrix(shape);
+
+            for (int row = 0; row < shape[0]; row++)
+            {
+                for (int col = 0; col < shape[1]; col++)
+                {
+                    resultMatrix[row, col] = scalar * this[row, col];
+                }
+            }
+
+            return resultMatrix;
+        }
+
+        public Matrix Add(Matrix matrix)
         {
             if (matrix == null)
             {
@@ -88,16 +104,16 @@ namespace _3D_Engine
                 throw new ArgumentException("These matrices cannot be added as they do not have the same shape.");
             }
 
-            Matrix ResultMatrix = new Matrix(this.shape);
+            Matrix resultMatrix = new Matrix(this.shape);
 
             for (int row = 0; row < this.shape[0]; row++)
             {
                 for (int col = 0; col < this.shape[0]; col++)
                 {
-                    ResultMatrix[row, col] = this[row, col] + matrix[row, col];
+                    resultMatrix[row, col] = this[row, col] + matrix[row, col];
                 }
             }
-            return ResultMatrix;
+            return resultMatrix;
         }
 
         public Matrix Subtract(Matrix matrix)
@@ -111,33 +127,69 @@ namespace _3D_Engine
                 throw new ArgumentException("These matrices cannot be subtracted as they do not have the same shape.");
             }
 
-            Matrix ResultMatrix = new Matrix(this.shape);
+            Matrix resultMatrix = new Matrix(this.shape);
 
             for (int row = 0; row < this.shape[0]; row++)
             {
                 for (int col = 0; col < this.shape[0]; col++)
                 {
-                    ResultMatrix[row, col] = this[row, col] - matrix[row, col];
+                    resultMatrix[row, col] = this[row, col] - matrix[row, col];
                 }
             }
-            return ResultMatrix;
+            return resultMatrix;
+        }
+
+        public Matrix Transpose()
+        {
+            int[] newShape = { shape[1], shape[0] };
+            Matrix resultMatrix = new Matrix(newShape);
+            for (int row = 0; row < this.shape[0]; row++)
+            {
+                for (int col = 0; col < this.shape[1]; col++)
+                {
+                    resultMatrix[col, row] = this[row, col];
+                }
+            }
+            return resultMatrix;
+        }
+
+        public Matrix Inverse()
+        {
+            float determinant = Determinant();
+            if (determinant == 0 || shape[0] != shape[1])
+            {
+                throw new ArithmeticException("This matrix cannot be inversed");
+            }
+            int sign = 1;
+            Matrix minorsMatrix = new Matrix(shape);
+            for (int row = 0; row < shape[0]; row++)
+            {
+                for (int col = 0; col < shape[1]; col++)
+                {
+                    int position = 0;
+                    int[] newShape = { shape[0] - 1, shape[1] - 1 };
+                    Matrix determinantMatrix = new Matrix(newShape);
+                    for (int minorRow = 0; minorRow < shape[0]; minorRow++)
+                    {
+                        for (int minorCol = 0; minorCol < shape[1]; minorCol++)
+                        {
+                            if (minorRow != row && minorCol != col)
+                            {
+                                determinantMatrix[position / newShape[1], position % newShape[0]] = this[minorRow, minorCol];
+                                position++;
+                            }
+                        }
+                    }
+                    minorsMatrix[row, col] = Determinant(determinantMatrix) * sign;
+                    sign *= -1;
+                }
+            }
+            Matrix adjugate = minorsMatrix.Transpose();
+
+            return adjugate.Multiply(1f / determinant);
         }
 
         public float Determinant() => Determinant(this);
-
-        public float this[int row, int column]
-        {
-            get => data[row, column];
-            set => data[row, column] = value;
-        }
-
-        private float[] GetRow(int row) => Enumerable.Range(0, shape[1])
-                .Select(i => data[row, i])
-                .ToArray();
-
-        private float[] GetColumn(int column) => Enumerable.Range(0, shape[0])
-                .Select(i => data[i, column])
-                .ToArray();
 
         private static float DotProduct(float[] row, float[] column)
         {
@@ -165,7 +217,7 @@ namespace _3D_Engine
             for (int i = 0; i < matrix.shape[1]; i++)
             {
                 int position = 0;
-                int[] new_shape = { matrix.shape[0] - 1, matrix.shape[1] - 1 }; 
+                int[] new_shape = { matrix.shape[0] - 1, matrix.shape[1] - 1 };
                 Matrix matrix1 = new Matrix(new_shape);
                 for (int row = 1; row <= new_shape[0]; row++)
                 {
@@ -183,5 +235,73 @@ namespace _3D_Engine
             }
             return determinant;
         }
+
+        public float this[int row, int column]
+        {
+            get => data[row, column];
+            set => data[row, column] = value;
+        }
+
+        private float[] GetRow(int row) => Enumerable.Range(0, shape[1])
+                .Select(i => data[row, i])
+                .ToArray();
+
+        private float[] GetColumn(int column) => Enumerable.Range(0, shape[0])
+                .Select(i => data[i, column])
+                .ToArray();
+
+        public override string ToString()
+        {
+            string formattedMatrix = "[";
+            int longest = 0;
+            for (int row = 0; row < shape[0]; row++)
+            {
+                for (int col = 0; col < shape[1]; col++)
+                {
+                    longest = Math.Max(longest, this[row, col].ToString().Length);
+                }
+            }
+
+            for (int row = 0; row < shape[0]; row++)
+            {
+                for (int col = 0; col < shape[1]; col++)
+                {
+                    int leadingSpaces = 2;
+                    int trailingSpaces = longest - this[row, col].ToString().Length;
+                    if (row == 0 && col == 0)
+                    {
+                        leadingSpaces = 1;
+                    }
+                    if (this[row, col] < 0)
+                    {
+                        leadingSpaces -= 1;
+                        trailingSpaces += 1;
+                    }
+                    formattedMatrix += new String(' ', leadingSpaces) + String.Format("{0},", this[row, col]) + new String(' ', trailingSpaces);
+                }
+                if (row != shape[0] - 1) 
+                {
+                    formattedMatrix = formattedMatrix.TrimEnd() + "\n";
+                } else
+                {
+                    formattedMatrix = formattedMatrix.TrimEnd();
+                    formattedMatrix = formattedMatrix.Remove(formattedMatrix.Length - 1) + " ]";
+                }
+            }
+            return formattedMatrix;
+        }
+
+        public static implicit operator string(Matrix a) => a.ToString();
+
+        public static Matrix operator +(Matrix a, Matrix b) => a.Add(b);
+
+        public static Matrix operator -(Matrix a, Matrix b) => a.Subtract(b);
+        
+        public static Matrix operator *(Matrix a, Matrix b) => a.Multiply(b);
+
+        public static Matrix operator *(float a, Matrix b) => b.Multiply(a);
+
+        public static Matrix operator *(Matrix a, float b) => a.Multiply(b);
+
     }
 }
