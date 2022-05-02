@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,10 +9,11 @@ namespace _3D_Engine
 {
     internal class Camera
     {
+        const int SCALING_FACTOR = 100;
+        public Matrix position;
+        public Matrix orientation;
+        public Matrix windowDimensions;
         Matrix displaySurface = new Matrix(new[] { 4, 1 }, new[] { 0.5, 0.5, 0.5, 1 });
-        Matrix position;
-        Matrix orientation;
-        Matrix windowDimensions;
         double near;
         double far;
         double fov;
@@ -57,8 +59,8 @@ namespace _3D_Engine
             double aspect = windowDimensions[0, 0] / windowDimensions[1, 0];
             double p00 = 1d / (aspect * Math.Tan(fov / 2));
             double p11 = 1d / Math.Tan(fov / 2);
-            double p22 = -(far + near) / (far - near);
-            double p23 = -(2 * far * near) / (far - near);
+            double p22 = (far + near) / (far - near);
+            double p32 = -(2 * far * near) / (far - near);
 
             double eX = displaySurface[0,0];
             double eY = displaySurface[1,0];
@@ -83,19 +85,24 @@ namespace _3D_Engine
             Matrix projectionMatrix = new Matrix(new[] { 4, 4 },
                                                  new[] { p00,   0,   0,   0,
                                                            0, p11,   0,   0,
-                                                           0,   0, p22, p23,
-                                                           0,   0,  -1,   0 });
+                                                           0,   0, p22,   1,
+                                                           0,   0, p32,   0 });
             Matrix matrixD = projectionMatrix * (rotationMatrixX * (rotationMatrixY * (rotationMatrixZ * (point - position))));
             Matrix matrixE = new Matrix(new[] { 4, 4 },
-                                        new[] { 1, 0, eX / eZ, 0,
-                                                0, 1, eY / eZ, 0,
-                                                0, 0,  1 / eZ, 0,
+                                        new[] { 1, 0, 0, eX / eZ,
+                                                0, 1, 0, eY / eZ,
+                                                0, 0, 1,  1 / eZ,
                                                 0, 0,       0, 1 });
+
             Matrix matrixF = matrixE * matrixD;
+
+
             Matrix returnMatrix = new Matrix(new[] { 3, 1 },
-                                             new[] { matrixF[0, 0] / matrixF[2, 0],
-                                                     matrixF[1, 0] / matrixF[2, 0],
-                                                     matrixD[4, 0] });
+                                             new[] { ((matrixF[0, 0] / matrixF[2, 0]) * SCALING_FACTOR) + windowDimensions[0, 0] / 2,
+                                                     ((matrixF[1, 0] / matrixF[2, 0]) * -SCALING_FACTOR) + windowDimensions[1, 0] / 2,
+                                                       matrixF[2, 0] });
+
+            
             return returnMatrix;
         }
     }

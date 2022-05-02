@@ -25,7 +25,7 @@ namespace _3D_Engine
             {
                 throw new ArgumentException("The dimensions of the array must be integers above 0");
             }
-            this.data = new double[shape[0], shape[1]];
+            data = new double[shape[0], shape[1]];
             this.shape = shape;
 
         }
@@ -76,15 +76,15 @@ namespace _3D_Engine
             {
                 throw new ArgumentNullException("Matrix cannot be multiplied by null object.");
             }
-            else if (this.shape[1] != matrix.shape[0])
+            else if (shape[1] != matrix.shape[0])
             {
                 throw new ArgumentException("These matrices cannot be multiplied as the column count of the first matrix is not equal to the row count on the second matrix.");
             }
 
-            int[] ResultShape = { this.shape[0], matrix.shape[1] };
+            int[] ResultShape = { shape[0], matrix.shape[1] };
             Matrix resultMatrix = new Matrix(ResultShape);
 
-            for (int row = 0; row < this.shape[0]; row++)
+            for (int row = 0; row < shape[0]; row++)
             {
                 for (int col = 0; col < matrix.shape[1]; col++)
                 {
@@ -128,16 +128,16 @@ namespace _3D_Engine
             {
                 throw new ArgumentNullException("Matrix cannot be added to a null object.");
             }
-            else if (this.shape != matrix.shape)
+            else if (shape[0] != matrix.shape[0] || shape[1] != matrix.shape[1])
             {
                 throw new ArgumentException("These matrices cannot be added as they do not have the same shape.");
             }
 
-            Matrix resultMatrix = new Matrix(this.shape);
+            Matrix resultMatrix = new Matrix(shape);
 
-            for (int row = 0; row < this.shape[0]; row++)
+            for (int row = 0; row < shape[0]; row++)
             {
-                for (int col = 0; col < this.shape[0]; col++)
+                for (int col = 0; col < shape[1]; col++)
                 {
                     resultMatrix[row, col] = this[row, col] + matrix[row, col];
                 }
@@ -158,16 +158,16 @@ namespace _3D_Engine
             {
                 throw new ArgumentNullException("Matrix cannot be subtracted by null object.");
             }
-            else if (this.shape != matrix.shape)
+            else if (shape[0] != matrix.shape[0] || shape[1] != matrix.shape[1])
             {
                 throw new ArgumentException("These matrices cannot be subtracted as they do not have the same shape.");
             }
 
-            Matrix resultMatrix = new Matrix(this.shape);
+            Matrix resultMatrix = new Matrix(shape);
 
-            for (int row = 0; row < this.shape[0]; row++)
+            for (int row = 0; row < shape[0]; row++)
             {
-                for (int col = 0; col < this.shape[0]; col++)
+                for (int col = 0; col < shape[1]; col++)
                 {
                     resultMatrix[row, col] = this[row, col] - matrix[row, col];
                 }
@@ -183,9 +183,9 @@ namespace _3D_Engine
         {
             int[] newShape = { shape[1], shape[0] };
             Matrix resultMatrix = new Matrix(newShape);
-            for (int row = 0; row < this.shape[0]; row++)
+            for (int row = 0; row < shape[0]; row++)
             {
-                for (int col = 0; col < this.shape[1]; col++)
+                for (int col = 0; col < shape[1]; col++)
                 {
                     resultMatrix[col, row] = this[row, col];
                 }
